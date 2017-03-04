@@ -34,7 +34,37 @@ And it's easy to extend and add the missing functionality your own.
 
 ## Quick Example
 
-**TODO**
+Let's say you own 100 shares of IBM and 200 shares of Apple,
+and you want to calculate the value of your portfolio from historical prices of the two stocks.
+
+```java
+//Get the historical prices from somewhere, e.g. http://finance.yahoo.com/ 
+Instant[] ibmDates = ...;
+double[] ibmPrices = ...;
+Instant[] appleDates = ...;
+double[] applePrices = ...;
+
+//Create time series containing IBM prices
+Series<Instant,Double> ibm = InstantDoubleSeries.create(ibmDates, ibmPrices);
+//Create time series containing Apple prices
+Series<Instant,Double> apple = InstantDoubleSeries.create(appleDates, applePrices);
+
+//Calculate the portfolio value. 
+//Multiply IBM prices by 100 and Apple by 200, and add the resulting series.
+//The "add" operation can deal with missing data (e.g. if Apple prices are missing for some days).
+//The result is time series containing the historical value of the portfolio.
+Series<Instant,Double> portfolioValue = 
+		Binary.add(
+				Binary.mul(ibm, 100),
+				Binary.mul(apple, 200)
+		);
+
+//Just to be fancy, smooth the portfolio value with 30-day moving average.
+Series<Instant,Double> smoothedPortfolioValue = Moving.avg(portfolioValue, 30);
+
+//And print the result.
+System.out.println(smoothedPortfolioValue.values().asList().toString());
+```
 
 ## Build & Install
 
@@ -43,7 +73,7 @@ And it's easy to extend and add the missing functionality your own.
 * Build the project
   * ``./gradlew install``
 * Use it
-  * Add the resulting jar (``build/libs/jseries-1.0.jar``) to your classpath
+  * Add the resulting jar ``build/libs/jseries-1.0.jar`` to your classpath
   * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies.  
 
 ## Design Principles
