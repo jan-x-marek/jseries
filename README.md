@@ -38,7 +38,13 @@ And it's easy to extend and add the missing functionality your own.
 
 ## Build & Install
 
-**TODO**
+* Clone the repo
+  * ``git clone https://github.com/jan-x-marek/jseries``
+* Build the project
+  * ``./gradlew install``
+* Use it
+  * Add the resulting jar (``build/libs/jseries-1.0.jar``) to your classpath
+  * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies.  
 
 ## Design Principles
 
