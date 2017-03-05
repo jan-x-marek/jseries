@@ -255,6 +255,7 @@ Series2.values:  100 200         500
 Addition.domain:   1       3   4   5
 Addition.values: 110     230 240 550
 ```
+**TODO** some more practical examples. 
 
 ### DirtyFunctions
 
