@@ -88,9 +88,12 @@ is quite limited. At the moment, it supports only the bits that I needed in my p
 and it certainly misses some obvious stuff that other users might need.
 I intend to keep adding more stuff in the future, but only to a limited extent.
 I am not planning to duplicate the entire Numpy, Pandas, or whatever, I want to keep it small and simple.
+
 The library is easily extensible. If you like the overall concept, and miss a particular function,
 please, drop me a message and I may decide to add it. Or, you are very welcome to add it on your own 
 and send me a pull request.
+
+Also, the javadoc is nearly non-existent at the moment, and it will hopefully improve.
 
 ## Random Design Notes
 
@@ -111,9 +114,11 @@ However, I did quite some performance benchmarking to see how much the generic
 interface really slows things down, and the difference was small, certainly worth the tradeoff.
 Apparently, Java 8 runtime is doing excellent job with runtime optimization.
 
-**TODO** 
+The overall design tends to functional programming flavor (as far as Java permits), 
+leveraging the cool new Java 8 stuff, such as lambdas and default method implementations.
 
 ## Quick Guide
+
  
 **TODO**
 
