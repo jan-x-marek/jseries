@@ -189,7 +189,7 @@ s.size();      //size of the domain (same as size of the values)
 
 On the other hand, Series can be seen as a total function 
 (i.e. a function defined for any point in time).
-And indeed, Series extends the java.util.Function interface. 
+And indeed, Series extends the ``java.util.Function`` interface. 
 The call ``series.apply(t)`` searches 
 for the closest lower or equal time point  in the domain, 
 and returns the corresponding value. If there is no such time point in the domain, 
@@ -198,34 +198,34 @@ We can imagine the data points in the series as measurements from a sensor,
 and a request for the value at any given time t (``series.apply(t)``) 
 returns the last known value at that time.
 
-Turning the Series into a total function opens us great possibilities, 
-as we can integrate it with all the functional infrastructure of Java
+Turning the Series into a total function opens great possibilities, 
+as it can be integrated with all the functional infrastructure of Java
 (streams, function composition, whatever).
 
-There is a bunch of tools to transform the series.
+There is a bunch of tools to transform Series.
 ```java
-//Create new series with the same domain, 
+//Create new Series with the same domain, 
 //and the values transformed with the given function.
 series.mapValues(x -> x+7);
 series.mapValues(Math::sqrt);
-//The same thing. Unary is a helper class that contains some standard unary operations.
+//The same thing. Unary is a helper class containing some standard unary operations.
 Unary.sqrt(series);
   
 //Create new Series that have the same domain as series1,
 //and the values are additions of the corresponding values 
-//from series1 and series2. More details on that later.
+//from series1 and series2. More details below.
 //There is a bunch of standard binary operators in the Binary class.   
 Binary.add(series1, series2)
 
 //Create new series with the same domain, and the values 
-//contain rolling average with window size 30.
+//contain rolling average of the input values, with window size 30.
 //There are several more rolling-window operations in the class Moving.
 //See also the DirtyFunctions section below.
 Moving.avg(series, 30);
 ```
 
 The binary operations, such as ``Binary.add(series1, series2)``, 
-might be a bit mysterious because the two series may have different domains.
+may look a bit mysterious because the two series may have different domains.
 Here is where the functional nature of series helps naturally.
 
 Series provide a (maybe a bit esoteric) operation with a horrible signature:
@@ -236,13 +236,25 @@ Series<T, R> zipWithValues(Function<? super T, ? extends R> operand2,
 It expects a 1-arg function and a 2-argument function as parameters.
 The result is a Series with the same domain, where the values are calculated like this:
 For each time point, apply the function *operand2* on the time point, and feed the result, 
-together with the value point to *operator*.
- Now, imagine what *operand2* is another Series, and the *operator* is simply ``(x,y) -> x+y``.
+together with the original value point to *operator*.
+ Now, imagine that *operand2* is another Series, and the *operator* is simply ``(x,y) -> x+y``.
 This is exactly how ``Binary.add(s1,s2)`` works.
 The resulting domain is same as ``s1.domain``. 
 It takes the points from s1, one by one,
-it searches for a point with lower or equal time in s2, 
+and searches for a point with lower or equal time in s2, 
 and adds the two values. Clear semantics, and works for any combination of domains.
+See an example of series addition here:
+
+```
+Series1.domain:    1       3   4   5    
+Series1.values:   10      30  40  50
+ 
+Series2.domain:    1   2           5
+Series2.values:  100 200         500
+
+Addition.domain:   1       3   4   5
+Addition.values: 110     230 240 550
+```
 
 ### DirtyFunctions
 
