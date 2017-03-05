@@ -102,14 +102,15 @@ This helps to achieve the best speed and memory efficiency.
 
 Everything is immutable. Arrays are encapsulated in immutable wrappers. 
 It keeps the semantics simple and eliminates any concurrency troubles.
+Well - there is one exception to this rule - DirtyFunctions - see the user guide.
 
 There is only a single set of interfaces, used both for primitive and non-primitive types. 
 For example, there is an Array<T> interface, which has a generic implementation for
 an array of Objects, and a specific implementation DoubleArray (of type Array<Double>),
-which stores the values as primitives internally.
+which stores the values as primitives internally, but has big Double in its type signature.
 It greatly simplifies the API, compared to the standard Java APIs (functions, streams)
 where every interface is copied many times for every primitive type.
-Naturally, it might affects performance due to some extra boxing/unboxing.
+Naturally, it might affect performance, due to some extra boxing/unboxing.
 However, I did quite some performance benchmarking to see how much the generic
 interface really slows things down, and the difference was small, certainly worth the tradeoff.
 Apparently, Java 8 runtime is doing excellent job with runtime optimization.
@@ -117,7 +118,7 @@ Apparently, Java 8 runtime is doing excellent job with runtime optimization.
 The overall design tends to functional programming flavor (as far as Java permits), 
 leveraging the cool new Java 8 stuff, such as lambdas and default method implementations.
 
-## Quick Guide
+## Quick User Guide
 
 ### Array
 
@@ -192,7 +193,7 @@ Function<Double, Double> sqrt = Math::sqrt;
 
 Function<Double, Double> dirtyComposite = sqrt.compose(recentRange);
 
-System.out.println(dirtyComposite.apply(0.0));		//prints 0
+System.out.println(dirtyComposite.apply(0.0));		//prints 0    - sqrt(0 - 0)
 System.out.println(dirtyComposite.apply(10.0));		//prints 3.16 - sqrt(10 - 0) 
 System.out.println(dirtyComposite.apply(-10.0));    //prints 4.47 - sqrt(10 - (-10))
 System.out.println(dirtyComposite.apply(20.0));     //prints 5.47 - sqrt(20 - (-10))
