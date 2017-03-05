@@ -153,9 +153,9 @@ System.out.println(a.asList().toString());
 
 Now the cool stuff comes. Series<T,R> is an interface that puts together two things: 
 a SortedArray, called *domain*, and an Array, called *values*.
-The domain contains some kind points in time in ascending order,
+The domain contains some kind of points in time in ascending order,
 and the values contain some kind of value, or measurement, for each of the given time points.
-For example, the domain can contain days, and the values can be closing prices of a stock.
+For example, the domain can contain days, and the values can be closing prices of a stock for each day.
 Naturally, the domain and the values can contain objects of any type,
 and can be any specifically optimized implementations of SortedArray and Array.
 In the further examples, I will work with InstantDoubleSeries, 
@@ -184,10 +184,10 @@ s.size();      //size of the domain (same as size of the values)
 
 On the other hand, Series can be seen as a total function 
 (i.e. a function defined for any point in time).
-Indeed, Series extends the java.util.Function interface. 
-The call ``series.apply(t)`` internally searches in the domain 
-for the closest lower or equal time point, 
-and returns the corresponding value. If there is no such point, 
+And indeed, Series extends the java.util.Function interface. 
+The call ``series.apply(t)`` searches 
+for the closest lower or equal time point  in the domain, 
+and returns the corresponding value. If there is no such time point in the domain, 
 it returns some default value (optionally specified in the constructor).
 We can imagine the data points in the series as measurements from a sensor, 
 and a request for the value at any given time t (``series.apply(t)``) 
@@ -195,16 +195,29 @@ returns the last known value at that time.
 
 Turning the Series into a total function opens us great possibilities, 
 as we can integrate it with the functional infrastructure of Java,
-as we will see in a short while.  
+as we will see in a short while.
 
-
-
+There is a bunch of tools to transform the series.
+```java
+//Create new series with the same domain, 
+//and the values transformed with the given function.
+series.mapValues(x -> x+7);
+series.mapValues(Math::sqrt);
+//The same thing. Unary is a helper class that contains some standard unary operations.
+Unary.sqrt(series);
   
+//Create new Series that have the same domain as series1,
+//and the values are additions of the corresponding values 
+//from series1 and series2. More details on that later.
+//There is a bunch of standard binary operators in the Binary class.   
+Binary.add(series1, series2)
 
-
-   
-
-
+//Create new series with the same domain, and the values 
+//contain rolling average with window size 30.
+//There are several more rolling-window operations in the class Moving.
+//See also the DirtyFunctions section below.
+Moving.avg(series, 30);
+```
 
 
 **TODO**
