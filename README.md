@@ -32,6 +32,11 @@ who can benefit from the library just like I did.
 
 And the lib is easy to extend, you can quickly add the missing pieces of functionality on your own.
 
+I use the library to process series sometimes containing tens of millions of elements,
+and it takes just a fraction of second. Indeed, it has only a small performance 
+overhead compared to manipulating bare primitive arrays directly,
+but the API is much nicer and safer, the code much shorter and easier to understand, etc, etc.
+
 ## Quick Example
 
 Let's say you own 100 shares of IBM and 200 shares of Apple,
@@ -194,8 +199,8 @@ and a request for the value at any given time t (``series.apply(t)``)
 returns the last known value at that time.
 
 Turning the Series into a total function opens us great possibilities, 
-as we can integrate it with the functional infrastructure of Java,
-as we will see in a short while.
+as we can integrate it with all the functional infrastructure of Java
+(streams, function composition, whatever).
 
 There is a bunch of tools to transform the series.
 ```java
@@ -219,8 +224,25 @@ Binary.add(series1, series2)
 Moving.avg(series, 30);
 ```
 
+The binary operations, such as ``Binary.add(series1, series2)``, 
+might be a bit mysterious because the two series may have different domains.
+Here is where the functional nature of series helps naturally.
 
-**TODO**
+Series provide a (maybe a bit esoteric) operation with a horrible signature:
+```java
+Series<T, R> zipWithValues(Function<? super T, ? extends R> operand2,
+                           BiFunction<? super R, ? super R, ? extends R> operator);
+```
+It expects a 1-arg function and a 2-argument function as parameters.
+The result is a Series with the same domain, where the values are calculated like this:
+For each time point, apply the function *operand2* on the time point, and feed the result, 
+together with the value point to *operator*.
+ Now, imagine what *operand2* is another Series, and the *operator* is simply ``(x,y) -> x+y``.
+This is exactly how ``Binary.add(s1,s2)`` works.
+The resulting domain is same as ``s1.domain``. 
+It takes the points from s1, one by one,
+it searches for a point with lower or equal time in s2, 
+and adds the two values. Clear semantics, and works for any combination of domains.
 
 ### DirtyFunctions
 
