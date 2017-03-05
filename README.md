@@ -21,16 +21,16 @@ This is where JSeries fits.
 
 It operates on a similar level of abstraction
 (high-level vector operations, no ugly for loops over arrays), 
-so that the code from the data modeling tools can be easily translated to it,
+so that the code from the data modeling tools can be easily translated to it.
 It's pure Java with no dependencies, and aims to run as fast and memory-efficiently as Java can get.
 
-Please, do not expect a full Numpy port to Java. It gets nowhere near and has no such ambition. 
-I support just a tiny subset of the functionality, which was enough to satisfy my practical needs: 
+Please, do not expect a full Java clone of Numpy. It gets nowhere near and has no such ambition. 
+I support just a tiny subset of the functionality, which was enough to satisfy my practical needs:
 only 1D arrays and time series, and a small set of predefined operations. 
 Nevertheless, I believe there are many developers whose needs in this respect are equally limited and 
-who can benefit from the library just like I do.
+who can benefit from the library just like I did.
 
-And it's easy to extend and add the missing functionality your own.
+And the lib is easy to extend, you can quickly add the missing pieces of functionality on your own.
 
 ## Quick Example
 
@@ -68,6 +68,7 @@ System.out.println(smoothedPortfolioValue.values().asList().toString());
 
 ## Build & Install
 
+* Requirements: git, Java 8
 * Clone the repo
   * ``git clone https://github.com/jan-x-marek/jseries``
 * Build the project
@@ -76,19 +77,43 @@ System.out.println(smoothedPortfolioValue.values().asList().toString());
   * Add the resulting jar ``build/libs/jseries-1.0.jar`` to your classpath
   * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies.  
 
-## Design Principles
-
-**TODO**
-
 ## Stability
 
 I have been using the code in production in several projects for more than a year, so I daresay it's safe and stable.
 
 ## Completeness
 
-**TODO**
+As noted above, the extent of the functionality (supported data types, various mappings and transformations) 
+is quite limited. At the moment, it supports only the bits that I needed in my projects, 
+and it certainly misses some obvious stuff that other users might need.
+I intend to keep adding more stuff in the future, but only to a limited extent.
+I am not planning to duplicate the entire Numpy, Pandas, or whatever, I want to keep it small and simple.
+The library is easily extensible. If you like the overall concept, and miss a particular function,
+please, drop me a message and I may decide to add it. Or, you are very welcome to add it on your own 
+and send me a pull request.
 
-## Quick Guide 
+## Random Design Notes
+
+Data are stored only in memory, in Java arrays, specifically in primitive arrays wherever possible.
+This helps to achieve the best speed and memory efficiency.
+
+Everything is immutable. Arrays are encapsulated in immutable wrappers. 
+It keeps the semantics simple and eliminates any concurrency troubles.
+
+There is only a single set of interfaces, used both for primitive and non-primitive types. 
+For example, there is an Array<T> interface, which has a generic implementation for
+an array of Objects, and a specific implementation DoubleArray (of type Array<Double>),
+which stores the values as primitives internally.
+It greatly simplifies the API, compared to the standard Java APIs (functions, streams)
+where every interface is copied many times for every primitive type.
+Naturally, it might affects performance due to some extra boxing/unboxing.
+However, I did quite some performance benchmarking to see how much the generic
+interface really slows things down, and the difference was small, certainly worth the tradeoff.
+Apparently, Java 8 runtime is doing excellent job with runtime optimization.
+
+**TODO** 
+
+## Quick Guide
  
 **TODO**
 
