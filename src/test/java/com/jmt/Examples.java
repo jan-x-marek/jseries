@@ -20,7 +20,8 @@ public class Examples {
 		//array();
 		//sortedArray();
 		//dirtyFunctions1();
-		dirtyFunctions2();
+		//dirtyFunctions2();
+		series();
 	}
 	
 	private static void quickExample() {
@@ -84,5 +85,19 @@ public class Examples {
 		System.out.println(dirtyComposite.apply(-10.0));
 		System.out.println(dirtyComposite.apply(20.0));
 		System.out.println(dirtyComposite.apply(30.0));
+	}
+	
+	private static void series() {
+		
+		Series<Instant,Double> s = null;
+		
+		//Series<Instant,Double> s = InstantDoubleSeries.create(
+		//		new Instant[]{i1, i2, i3}, 
+		//		new double[]{v1, v2, v3});
+		
+		s.domain(7);
+		s.value(7);
+		
+		
 	}
 }

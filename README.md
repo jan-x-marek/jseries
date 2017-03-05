@@ -75,7 +75,7 @@ System.out.println(smoothedPortfolioValue.values().asList().toString());
   * ``./gradlew install``
 * Use it
   * Add the resulting jar ``build/libs/jseries-1.0.jar`` to your classpath
-  * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies.  
+  * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies (it's in the local repository only).  
 
 ## Stability
 
@@ -143,13 +143,70 @@ that stores instants in primitive long[] in order to minimize memory usage.
 ```java
 SortedArray<String> a = GenericSortedArray.of("a", "b", "e", "f");
 a.get(2); 		               //Retrieve an element
-a.findLE("c"); 	               //Return the index of the first element lower or equal "c"
+a.findLE("c"); 	               //Return the index of the first element lower or equal "c" - which is 1
 a.map(x -> x + "FOO");	       //Transform the values with a function, the result is normal Array
 a.mapSorted(x -> x + "BAR");   //Transform the values with a function, the result is SortedArray
 System.out.println(a.asList().toString());
 ```
 
 ### Series
+
+Now the cool stuff comes. Series<T,R> is an interface that puts together two things: 
+a SortedArray, called *domain*, and an Array, called *values*.
+The domain contains some kind points in time in ascending order,
+and the values contain some kind of value, or measurement, for each of the given time points.
+For example, the domain can contain days, and the values can be closing prices of a stock.
+Naturally, the domain and the values can contain objects of any type,
+and can be any specifically optimized implementations of SortedArray and Array.
+In the further examples, I will work with InstantDoubleSeries, 
+which uses the optimized SortedInstantArray and DoubleArray internally.
+
+```java
+//InstantDoubleSeries provides a bunch of different factory methods.
+Series<Instant,Double> s = InstantDoubleSeries.create(
+		new Instant[]{i1, i2, i3}, 
+		new double[]{v1, v2, v3});
+```
+
+The concept of Series is of a dualistic nature. 
+
+On the one hand, we can see it as a plain pair of arrays, 
+and access the arrays or their elements individually as discrete points.
+
+```java
+s.domain()     //the entire domain array
+s.values()     //the entire values array
+s.domain(7);   //the 7th time point
+s.value(7);    //the 7th value
+s.size();      //size of the domain (same as size of the values)
+
+```
+
+On the other hand, Series can be seen as a total function 
+(i.e. a function defined for any point in time).
+Indeed, Series extends the java.util.Function interface. 
+The call ``series.apply(t)`` internally searches in the domain 
+for the closest lower or equal time point, 
+and returns the corresponding value. If there is no such point, 
+it returns some default value (optionally specified in the constructor).
+We can imagine the data points in the series as measurements from a sensor, 
+and a request for the value at any given time t (``series.apply(t)``) 
+returns the last known value at that time.
+
+Turning the Series into a total function opens us great possibilities, 
+as we can integrate it with the functional infrastructure of Java,
+as we will see in a short while.  
+
+
+
+  
+
+
+   
+
+
+
+
 **TODO**
 
 ### DirtyFunctions
