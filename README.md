@@ -2,7 +2,7 @@
 
 Ultra-lightweight time series library for Java 8
 
-* Fast, memory-efficient
+* Super-fast, memory-efficient
 * Zero runtime dependencies, tiny jar
 * Neat API, leveraging Java 8 features
 
@@ -152,5 +152,49 @@ System.out.println(a.asList().toString());
 **TODO**
 
 ### DirtyFunctions
-**TODO**
 
+Dirty function is an implementation of the Function interface, which internally remembers 
+some state, so the result of a function call depends on previous calls. 
+It's generally not a recommended practice, but it can be a great tool if used with caution. 
+I use dirty functions in the Moving transformations mentioned in the previous section,
+and they are often useful on their own, outside the domain of Series.
+
+```java
+//This creates a function that calculates moving average.
+//When you invoke it with an argument, it returns the average 
+//of the arguments of the last 3 calls (or less for the first calls). 
+Function<Double, Double> movingAvg = DirtyFunctions.movingAvg(3);
+
+System.out.println(movingAvg.apply(1.0));	//prints 1    - 1/1
+System.out.println(movingAvg.apply(2.0));   //prints 1.5  - (1+2)/2
+System.out.println(movingAvg.apply(4.0));   //prints 2.33 - (1+2+4)/3
+System.out.println(movingAvg.apply(8.0));   //prints 4.66 - (2+4+8)/3
+System.out.println(movingAvg.apply(16.0));  //prints 9.33 - (4+8+16)/3 
+```
+
+There are similar dirty functions available for moving max, min, sum, and quantile.
+They are all implemented using a ring buffer and reusing previous results
+as much as possible, so they scale very well for large window sizes.
+Because they implement the Function, interface they can be easily composed and compounded,
+and can be used for fast calculations in realtime processing.    
+
+Let's say we have a sensor providing some realtime input, and we want to know the square root 
+of the difference between the minimum and the maximum value for the last 100 measurements.
+We compose moving minimum and maximum with Math.sqrt, and we get a new dirty function.
+We feed the input into is as it comes and the function returns the desired statistics based on the recent history.
+It's a very efficient and error-prone way to implement sophisticated real-time data processors.
+
+```java
+Function<Double, Double> recentMin = DirtyFunctions.movingMin(100);
+Function<Double, Double> recentMax = DirtyFunctions.movingMax(100);
+Function<Double, Double> recentRange = x -> recentMax.apply(x) - recentMin.apply(x);
+Function<Double, Double> sqrt = Math::sqrt;
+
+Function<Double, Double> dirtyComposite = sqrt.compose(recentRange);
+
+System.out.println(dirtyComposite.apply(0.0));		//prints 0
+System.out.println(dirtyComposite.apply(10.0));		//prints 3.16 - sqrt(10 - 0) 
+System.out.println(dirtyComposite.apply(-10.0));    //prints 4.47 - sqrt(10 - (-10))
+System.out.println(dirtyComposite.apply(20.0));     //prints 5.47 - sqrt(20 - (-10))
+System.out.println(dirtyComposite.apply(30.0));     //prints 6.32 - sqrt(30 - (-10))
+```

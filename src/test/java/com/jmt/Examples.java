@@ -1,10 +1,12 @@
 package com.jmt;
 
 import java.time.Instant;
+import java.util.function.Function;
 
 import com.jmt.jseries.InstantDoubleSeries;
 import com.jmt.jseries.Series;
 import com.jmt.jseries.algebra.Binary;
+import com.jmt.jseries.algebra.DirtyFunctions;
 import com.jmt.jseries.algebra.Moving;
 import com.jmt.jseries.array.Array;
 import com.jmt.jseries.array.DoubleArray;
@@ -16,7 +18,9 @@ public class Examples {
 	public static void main(String[] args) {
 		//quickExample();
 		//array();
-		sortedArray();
+		//sortedArray();
+		//dirtyFunctions1();
+		dirtyFunctions2();
 	}
 	
 	private static void quickExample() {
@@ -56,5 +60,29 @@ public class Examples {
 		a.map(x -> x + "FOO");	//Transform the values with a function, the result is normal Array
 		a.mapSorted(x -> x + "BAR");	//Transform the values with a function, the result is SortedArray
 		System.out.println(a.asList().toString());
+	}
+	
+	private static void dirtyFunctions1() {
+		Function<Double, Double> movingAvg = DirtyFunctions.movingAvg(3);
+		System.out.println(movingAvg.apply(1.0));
+		System.out.println(movingAvg.apply(2.0));
+		System.out.println(movingAvg.apply(4.0));
+		System.out.println(movingAvg.apply(8.0));
+		System.out.println(movingAvg.apply(16.0));
+	}
+	
+	private static void dirtyFunctions2() {
+		Function<Double, Double> recentMin = DirtyFunctions.movingMin(100);
+		Function<Double, Double> recentMax = DirtyFunctions.movingMax(100);
+		Function<Double, Double> recentRange = x -> recentMax.apply(x) - recentMin.apply(x);
+		Function<Double, Double> sqrt = Math::sqrt;
+		
+		Function<Double, Double> dirtyComposite = sqrt.compose(recentRange);
+
+		System.out.println(dirtyComposite.apply(0.0));
+		System.out.println(dirtyComposite.apply(10.0));
+		System.out.println(dirtyComposite.apply(-10.0));
+		System.out.println(dirtyComposite.apply(20.0));
+		System.out.println(dirtyComposite.apply(30.0));
 	}
 }
