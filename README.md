@@ -128,9 +128,9 @@ and DoubleArray that internally contains primitive double[] in order to minimize
 
 ```java
 Array<Double> a = DoubleArray.of(1.0, 2.0, 3.0);
-a.get(2);	//Retrieve an element
-a.asList();	//Convert to list
-a.map(x -> x * 2);	//Transform the values with a function
+a.get(2);           //Retrieve an element
+a.asList();	        //Convert to list
+a.map(x -> x * 2);  //Transform the values with a function
 System.out.println(a.asList().toString());
 ```
 
@@ -142,10 +142,10 @@ that stores instants in primitive long[] in order to minimize memory usage.
 
 ```java
 SortedArray<String> a = GenericSortedArray.of("a", "b", "e", "f");
-a.get(2); 		//Retrieve an element
-a.findLE("c"); 	//Return the index of the first element lower or equal "c"
-a.map(x -> x + "FOO");	//Transform the values with a function, the result is normal Array
-a.mapSorted(x -> x + "BAR");	//Transform the values with a function, the result is SortedArray
+a.get(2); 		               //Retrieve an element
+a.findLE("c"); 	               //Return the index of the first element lower or equal "c"
+a.map(x -> x + "FOO");	       //Transform the values with a function, the result is normal Array
+a.mapSorted(x -> x + "BAR");   //Transform the values with a function, the result is SortedArray
 System.out.println(a.asList().toString());
 ```
 
