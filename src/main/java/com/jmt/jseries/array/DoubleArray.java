@@ -37,7 +37,33 @@ public final class DoubleArray implements Array<Double> {
     public static DoubleArray of(Collection<Double> values) {
         return new DoubleArray(false, toPrimitiveDouble(values));
     }
-
+    
+    /**
+     * Create an array of evenly spaced numbers over a specified interval.
+     */
+    public static DoubleArray linspace(double start, double endExcl, double step) {
+    	
+    	double range = endExcl - start;
+    	
+		double dSize  = range < 0 ? 
+				Math.floor(range / step) : 
+				Math.ceil(range / step);
+				
+    	if (dSize >= Integer.MAX_VALUE || dSize<0) {
+    		throw new IllegalArgumentException(start+" "+endExcl+" "+step+" "+dSize);
+    	}
+    	
+    	int size = (int) dSize;
+    	double[] result = new double[size];
+    	double x = start;
+    	for(int i=0; i<size; i++) {
+    		result[i] = x;
+    		x += step;
+    	}
+    	
+        return ofNoClone(result);
+    }
+    
     private static double[] toPrimitiveDouble(Collection<Double> list) {
         int i = 0;
         int length = list.size();

@@ -15,10 +15,9 @@
 */
 package com.jmt.jseries.array;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 public class DoubleArrayTest {
 
@@ -30,34 +29,19 @@ public class DoubleArrayTest {
 
     @Test
     public void testGet() {
-
         DoubleArray a = DoubleArray.ofNoClone(-1.0, 1.0, 2.0, 0.0);
-
-        assertEquals(4, a.size());
-
-        assertEquals(-1.0, a.get(0));
-        assertEquals(1.0, a.get(1));
-
-        assertEquals(-1.0, a.getFirst());
-        assertEquals(0.0, a.getLast());
+        assertThat(a.size()).isEqualTo(4);
+        assertThat(a.get(0)).isEqualTo(-1.0);
+        assertThat(a.get(1)).isEqualTo(1.0);
+        assertThat(a.getFirst()).isEqualTo(-1.0);
+        assertThat(a.getLast()).isEqualTo(0.0);
     }
 
     @Test
     public void testGetWrongIndex() {
-
         DoubleArray a = DoubleArray.ofNoClone(-1.0, 1.0, 2.0, 0.0);
-
-        try {
-            a.get(-1);
-            fail();
-        } catch (IndexOutOfBoundsException e) {
-        }
-
-        try {
-            a.get(5);
-            fail();
-        } catch (IndexOutOfBoundsException e) {
-        }
+        assertThatThrownBy(() -> a.get(-1)).isInstanceOf(IndexOutOfBoundsException.class);
+        assertThatThrownBy(() -> a.get(5)).isInstanceOf(IndexOutOfBoundsException.class);
     }
 
     @Test
@@ -72,13 +56,35 @@ public class DoubleArrayTest {
         Array<String> mapped = array.map(GenericArray.builder(0), d -> "" + d);
         assertThat(mapped.asList()).containsExactly("1.0", "2.0");
     }
-
-    //A hack to quickly deal with JUnit API change
-    private void assertEquals(Object v1, Object v2) {
-        Assert.assertEquals(v1, v2);
+    
+    @Test
+    public void linspace() {
+    	assertThat(DoubleArray.linspace(0, 5, 1).asList()).containsExactly(0d,1d,2d,3d,4d);
+    	assertThat(DoubleArray.linspace(0, 4.1, 1).asList()).containsExactly(0d,1d,2d,3d,4d);
+    	assertThat(DoubleArray.linspace(1, 2, 0.5).asList()).containsExactly(1d,1.5);
+    	assertThat(DoubleArray.linspace(1, 1, 1).asList()).isEmpty();
+    	assertThat(DoubleArray.linspace(0, -3, -1).asList()).containsExactly(0d,-1d,-2d);
+    	assertThat(DoubleArray.linspace(0, -3.1, -1).asList()).containsExactly(0d,-1d,-2d);
     }
-
-    private void fail() {
-        Assert.fail();
+    
+    @Test
+    public void linspace_large() {
+    	DoubleArray a = DoubleArray.linspace(0, 1000000, 1);
+		assertThat(a.size()).isEqualTo(1000000);
+		assertThat(a.get(654321)).isEqualTo(654321d);
+    }
+    
+    @Test
+    public void linspace_too_large() {
+    	assertThatThrownBy(() -> DoubleArray.linspace(0, 1000000000, 0.01))
+    		.isInstanceOf(IllegalArgumentException.class);
+    }
+    
+    @Test
+    public void linspace_negative() {
+    	assertThatThrownBy(() -> DoubleArray.linspace(0, 5, -1))
+    		.isInstanceOf(IllegalArgumentException.class);
+    	assertThatThrownBy(() -> DoubleArray.linspace(0, -5, 1))
+			.isInstanceOf(IllegalArgumentException.class);
     }
 }
