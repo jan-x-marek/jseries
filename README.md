@@ -82,47 +82,6 @@ but the API is much nicer and safer, the code much shorter and easier to underst
   * Add the resulting jar ``build/libs/jseries-1.0.jar`` to your classpath
   * Or add the artifact ``com.jmt:jseries:1.0`` to your gradle or maven dependencies (it's in the local repository only).  
 
-## Stability
-
-I have been using the code in production in several projects for more than a year, so I daresay it's safe and stable.
-
-## Completeness
-
-As noted above, the extent of the functionality (supported data types, various mappings and transformations) 
-is quite limited. At the moment, it supports only the bits that I needed in my projects, 
-and it certainly misses some obvious stuff that other users might need.
-I intend to keep adding more stuff in the future, but only to a limited extent.
-I am not planning to duplicate the entire Numpy, Pandas, or whatever, I want to keep it small and simple.
-
-The library is easily extensible. If you like the overall concept, and miss a particular function,
-please, drop me a message and I may decide to add it. Or, you are very welcome to add it on your own 
-and send me a pull request.
-
-Also, the javadoc is nearly non-existent at the moment, and it will hopefully improve.
-
-## Random Design Notes
-
-Data are stored only in memory, in Java arrays, specifically in primitive arrays wherever possible.
-This helps to achieve the best speed and memory efficiency.
-
-Everything is immutable. Arrays are encapsulated in immutable wrappers. 
-It keeps the semantics simple and eliminates any concurrency troubles.
-Well - there is one exception to this rule - DirtyFunctions - see the user guide below.
-
-There is only a single set of interfaces, used both for primitive and non-primitive types. 
-For example, there is an Array<T> interface, which has a generic implementation for
-an array of Objects, and a specific implementation DoubleArray (of the type ``Array<Double>``),
-which stores the values as primitives internally, but has big Double in its type signature.
-It greatly simplifies the API, compared to the standard Java APIs (functions, streams)
-where every interface is copied many times for every primitive type.
-Naturally, it might affect performance, due to some extra boxing/unboxing.
-However, I did quite some performance benchmarking to see how much the generic
-interface really slows things down, and the difference was small, certainly worth the tradeoff.
-Apparently, Java 8 runtime is doing excellent job with runtime optimization.
-
-The overall design tends to functional programming flavor (as far as Java permits), 
-leveraging the cool new Java 8 stuff, such as lambdas and default method implementations.
-
 ## Quick User Guide
 
 ### Array
@@ -278,3 +237,44 @@ System.out.println(dirtyComposite.apply(30.0));     //prints 6.32 - sqrt(30 - (-
 ```
 We compose the difference between moving maximum and minimum with Math.sqrt, and we get a new dirty function.
 We feed the input into is as it comes and the function returns the desired statistics based on the recent history.
+
+## Stability
+
+I have been using the code in production in several projects for more than a year, so I daresay it's safe and stable.
+
+## Completeness
+
+As noted above, the extent of the functionality (supported data types, various mappings and transformations) 
+is quite limited. At the moment, it supports only the bits that I needed in my projects, 
+and it certainly misses some obvious stuff that other users might need.
+I intend to keep adding more stuff in the future, but only to a limited extent.
+I am not planning to duplicate the entire Numpy, Pandas, or whatever, I want to keep it small and simple.
+
+The library is easily extensible. If you like the overall concept, and miss a particular function,
+please, drop me a message and I may decide to add it. Or, you are very welcome to add it on your own 
+and send me a pull request.
+
+Also, the javadoc is nearly non-existent at the moment, and it will hopefully improve.
+
+## Random Design Notes
+
+Data are stored only in memory, in Java arrays, specifically in primitive arrays wherever possible.
+This helps to achieve the best speed and memory efficiency.
+
+Everything is immutable. Arrays are encapsulated in immutable wrappers. 
+It keeps the semantics simple and eliminates any concurrency troubles.
+Well - there is one exception to this rule - DirtyFunctions - see the user guide below.
+
+There is only a single set of interfaces, used both for primitive and non-primitive types. 
+For example, there is an Array<T> interface, which has a generic implementation for
+an array of Objects, and a specific implementation DoubleArray (of the type ``Array<Double>``),
+which stores the values as primitives internally, but has big Double in its type signature.
+It greatly simplifies the API, compared to the standard Java APIs (functions, streams)
+where every interface is copied many times for every primitive type.
+Naturally, it might affect performance, due to some extra boxing/unboxing.
+However, I did quite some performance benchmarking to see how much the generic
+interface really slows things down, and the difference was small, certainly worth the tradeoff.
+Apparently, Java 8 runtime is doing excellent job with runtime optimization.
+
+The overall design tends to functional programming flavor (as far as Java permits), 
+leveraging the cool new Java 8 stuff, such as lambdas and default method implementations.
