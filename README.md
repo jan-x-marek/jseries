@@ -143,11 +143,11 @@ System.out.println(a.asList().toString());
 
 Extension of Array, the values are sorted. Provides methods for efficient (binary) search.
 There are two implementations: GenericSortedArray that can store any type, and InstantArray
-that stores instants in primitive long[] in order to minimize memory usage.
+that stores instants in a primitive long[] in order to minimize memory usage.
 
 ```java
 SortedArray<String> a = GenericSortedArray.of("a", "b", "e", "f");
-a.get(2); 		               //Retrieve an element
+a.get(2);                      //Retrieve an element
 a.findLE("c"); 	               //Return the index of the first element lower or equal "c" - which is 1
 a.map(x -> x + "FOO");	       //Transform the values with a function, the result is normal Array
 a.mapSorted(x -> x + "BAR");   //Transform the values with a function, the result is SortedArray
@@ -156,10 +156,10 @@ System.out.println(a.asList().toString());
 
 ### Series
 
-Now the cool stuff comes. Series<T,R> is an interface that puts together two things: 
+Now the cool stuff comes. ``Series<T,R>`` is an interface that puts together two things: 
 a SortedArray, called *domain*, and an Array, called *values*.
-The domain contains some kind of points in time in ascending order,
-and the values contain some kind of value, or measurement, for each of the given time points.
+The *domain* contains some kind of points in time in ascending order,
+and the *values* contain some kind of, well, values, or measurements, for each of the given time points.
 For example, the domain can contain days, and the values can be closing prices of a stock for each day.
 Naturally, the domain and the values can contain objects of any type,
 and can be any specifically optimized implementations of SortedArray and Array.
@@ -223,44 +223,20 @@ Binary.add(series1, series2)
 //See also the DirtyFunctions section below.
 Moving.avg(series, 30);
 ```
-
-The binary operations, such as ``Binary.add(series1, series2)``, 
-may look a bit mysterious because the two series may have different domains.
-Here is where the functional nature of series helps naturally.
-
-Series provide a (maybe a bit esoteric) operation with a horrible signature:
+New binary operations can be easily added via generic operator *zipWithValues*.
+Here is how ``Binary.add(series1, series2)`` is implemented internally:
 ```java
-Series<T, R> zipWithValues(Function<? super T, ? extends R> operand2,
-                           BiFunction<? super R, ? super R, ? extends R> operator);
+series1.zipWithValues(series2, (x, y) -> x + y)
 ```
-It expects a 1-arg function and a 2-argument function as parameters.
-The result is a Series with the same domain, where the values are calculated like this:
-For each time point, apply the function *operand2* on the time point, and feed the result, 
-together with the original value point to *operator*.
- Now, imagine that *operand2* is another Series, and the *operator* is simply ``(x,y) -> x+y``.
-This is exactly how ``Binary.add(s1,s2)`` works.
-The resulting domain is same as ``s1.domain``. 
-It takes the points from s1, one by one,
-and searches for a point with lower or equal time in s2, 
-and adds the two values. Clear semantics, and works for any combination of domains.
-See an example of series addition here:
-
-```
-Series1.domain:    1       3   4   5    
-Series1.values:   10      30  40  50
- 
-Series2.domain:    1   2           5
-Series2.values:  100 200         500
-
-Addition.domain:   1       3   4   5
-Addition.values: 110     230 240 550
-```
-**TODO** some more practical examples. 
+It takes all points from the *series1*, it searches for the corresponding points in the *series2*, 
+and then it applies the given operation (here ``x + y``) to the pairs of corresponding points.
+*series2* is accessed as a total function - "corresponding point" means the closest point back in time.
+Hence there are no particular requirements how the domains of the series should look like and the result always makes sense.
 
 ### DirtyFunctions
 
-Dirty function is an implementation of the Function interface, which internally remembers 
-some state, so the result of a function call depends on previous calls. 
+*Dirty function* is an implementation of the ``java.util.Function`` interface, which remembers 
+some state internally, so the result of a function call depends on previous calls. 
 It's generally not a recommended practice, but it can be a great tool if used with caution. 
 I use dirty functions in the Moving transformations mentioned in the previous section,
 and they are often useful on their own, outside the domain of Series.
@@ -271,7 +247,7 @@ and they are often useful on their own, outside the domain of Series.
 //of the arguments of the last 3 calls (or less for the first calls). 
 Function<Double, Double> movingAvg = DirtyFunctions.movingAvg(3);
 
-System.out.println(movingAvg.apply(1.0));	//prints 1    - 1/1
+System.out.println(movingAvg.apply(1.0));   //prints 1    - 1/1
 System.out.println(movingAvg.apply(2.0));   //prints 1.5  - (1+2)/2
 System.out.println(movingAvg.apply(4.0));   //prints 2.33 - (1+2+4)/3
 System.out.println(movingAvg.apply(8.0));   //prints 4.66 - (2+4+8)/3
@@ -281,15 +257,11 @@ System.out.println(movingAvg.apply(16.0));  //prints 9.33 - (4+8+16)/3
 There are similar dirty functions available for moving max, min, sum, and quantile.
 They are all implemented using a ring buffer and reusing previous results
 as much as possible, so they scale very well for large window sizes.
-Because they implement the Function, interface they can be easily composed and compounded,
-and can be used for fast calculations in realtime processing.    
+Because they implement the Function interface, they can be easily composed and compounded,
+and can be used for fast and safe calculations in realtime processing.    
 
 Let's say we have a sensor providing some realtime input, and we want to know the square root 
 of the difference between the minimum and the maximum value for the last 100 measurements.
-We compose moving minimum and maximum with Math.sqrt, and we get a new dirty function.
-We feed the input into is as it comes and the function returns the desired statistics based on the recent history.
-It's a very efficient and error-prone way to implement sophisticated real-time data processors.
-
 ```java
 Function<Double, Double> recentMin = DirtyFunctions.movingMin(100);
 Function<Double, Double> recentMax = DirtyFunctions.movingMax(100);
@@ -298,9 +270,11 @@ Function<Double, Double> sqrt = Math::sqrt;
 
 Function<Double, Double> dirtyComposite = sqrt.compose(recentRange);
 
-System.out.println(dirtyComposite.apply(0.0));		//prints 0    - sqrt(0 - 0)
-System.out.println(dirtyComposite.apply(10.0));		//prints 3.16 - sqrt(10 - 0) 
+System.out.println(dirtyComposite.apply(0.0));      //prints 0    - sqrt(0 - 0)
+System.out.println(dirtyComposite.apply(10.0));     //prints 3.16 - sqrt(10 - 0) 
 System.out.println(dirtyComposite.apply(-10.0));    //prints 4.47 - sqrt(10 - (-10))
 System.out.println(dirtyComposite.apply(20.0));     //prints 5.47 - sqrt(20 - (-10))
 System.out.println(dirtyComposite.apply(30.0));     //prints 6.32 - sqrt(30 - (-10))
 ```
+We compose the difference between moving maximum and minimum with Math.sqrt, and we get a new dirty function.
+We feed the input into is as it comes and the function returns the desired statistics based on the recent history.
