@@ -15,10 +15,10 @@
 */
 package com.jmt.jseries.array;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Instant;
+import java.util.stream.LongStream;
 
 import static com.jmt.testutil.Parse.dateTime;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,13 +31,13 @@ public class InstantSortedArrayTest {
 
         InstantSortedArray array = InstantSortedArray.ofMillisNoClone(0, 1000000000, 2000000000);
 
-        assertEquals(3, array.size());
+        assertThat(array.size()).isEqualTo(3);
 
-        assertEquals(0L, array.get(0).toEpochMilli());
-        assertEquals(2000000000L, array.get(2).toEpochMilli());
+        assertThat(array.get(0).toEpochMilli()).isEqualTo(0L);
+        assertThat(array.get(2).toEpochMilli()).isEqualTo(2000000000L);
 
-        assertEquals(array.get(0), dateTime("01/01/1970 00:00:00 UTC"));
-        assertEquals(array.get(2), dateTime("24/01/1970 03:33:20 UTC"));
+        assertThat(array.get(0)).isEqualTo(dateTime("01/01/1970 00:00:00 UTC"));
+        assertThat(array.get(2)).isEqualTo(dateTime("24/01/1970 03:33:20 UTC"));
     }
 
     @Test
@@ -49,13 +49,13 @@ public class InstantSortedArrayTest {
                 dateTime("24/01/1970 03:33:20 UTC")
         );
 
-        assertEquals(3, array.size());
+        assertThat(array.size()).isEqualTo(3);
 
-        assertEquals(0L, array.get(0).toEpochMilli());
-        assertEquals(2000000000L, array.get(2).toEpochMilli());
+        assertThat(array.get(0).toEpochMilli()).isEqualTo(0L);
+        assertThat(array.get(2).toEpochMilli()).isEqualTo(2000000000L);
 
-        assertEquals(array.get(0), dateTime("01/01/1970 00:00:00 UTC"));
-        assertEquals(array.get(2), dateTime("24/01/1970 03:33:20 UTC"));
+        assertThat(array.get(0)).isEqualTo(dateTime("01/01/1970 00:00:00 UTC"));
+        assertThat(array.get(2)).isEqualTo(dateTime("24/01/1970 03:33:20 UTC"));
     }
 
     @Test
@@ -69,11 +69,11 @@ public class InstantSortedArrayTest {
     @Test
     public void find() {
         InstantSortedArray array = InstantSortedArray.ofMillisNoClone(0, 1000000000, 2000000000);
-        assertEquals(1, array.findLE(dateTime("12/01/1970 13:46:40 UTC")));
-        assertEquals(0, array.findLT(dateTime("12/01/1970 13:46:40 UTC")));
-        assertEquals(1, array.findGE(dateTime("12/01/1970 13:46:40 UTC")));
-        assertEquals(2, array.findGT(dateTime("12/01/1970 13:46:40 UTC")));
-        assertEquals(1, array.find(dateTime("12/01/1970 13:46:40 UTC")));
+        assertThat(array.findLE(dateTime("12/01/1970 13:46:40 UTC"))).isEqualTo(1);
+        assertThat(array.findLT(dateTime("12/01/1970 13:46:40 UTC"))).isEqualTo(0);
+        assertThat(array.findGE(dateTime("12/01/1970 13:46:40 UTC"))).isEqualTo(1);
+        assertThat(array.findGT(dateTime("12/01/1970 13:46:40 UTC"))).isEqualTo(2);
+        assertThat(array.find(dateTime("12/01/1970 13:46:40 UTC"))).isEqualTo(1);
     }
 
     @Test
@@ -123,9 +123,40 @@ public class InstantSortedArrayTest {
                 dateTime("24/01/1970 03:33:20 UTC")
         );
     }
-
-    //A hack to quickly deal with JUnit API change
-    private void assertEquals(Object v1, Object v2) {
-        Assert.assertEquals(v1, v2);
+    
+    @Test
+    public void linspace() {
+    	assertThat(InstantSortedArray.linspace(0, 10, 2).asList()).containsExactly(toInstants(0L, 2L, 4L, 6L, 8L));
+    	assertThat(InstantSortedArray.linspace(0, 9, 2).asList()).containsExactly(toInstants(0L, 2L, 4L, 6L, 8L));
+    	assertThat(InstantSortedArray.linspace(1, 1, 1).asList()).isEmpty();
+    }
+    
+    @Test
+    public void linspace_large() {
+    	InstantSortedArray a = InstantSortedArray.linspace(0, 1000000, 1);
+		assertThat(a.size()).isEqualTo(1000000);
+		assertThat(a.get(654321)).isEqualTo(Instant.ofEpochMilli(654321));
+    }
+    
+    @Test
+    public void linspace_too_large() {
+    	assertThatThrownBy(() -> InstantSortedArray.linspace(0, 1000000000000L, 1))
+    		.isInstanceOf(IllegalArgumentException.class);
+    }
+    
+    @Test
+    public void linspace_negative() {
+    	assertThatThrownBy(() -> InstantSortedArray.linspace(0, 5, -1))
+			.isInstanceOf(IllegalArgumentException.class);
+    	assertThatThrownBy(() -> InstantSortedArray.linspace(0, -5, -1))
+			.isInstanceOf(IllegalArgumentException.class);
+    	assertThatThrownBy(() -> InstantSortedArray.linspace(0, -5, 1))
+			.isInstanceOf(IllegalArgumentException.class);
+    }
+    
+    private Instant[] toInstants(long... millis) {
+    	return LongStream.of(millis)
+    			.mapToObj(t -> Instant.ofEpochMilli(t))
+    			.toArray(i -> new Instant[i]);
     }
 }

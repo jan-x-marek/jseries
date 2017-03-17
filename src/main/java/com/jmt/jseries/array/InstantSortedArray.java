@@ -53,7 +53,31 @@ public final class InstantSortedArray implements SortedArray<Instant> {
     public static InstantSortedArray ofMillisNoClone(long... values) {
         return new InstantSortedArray(false, values);
     }
-
+    
+    /**
+     * Create an array of evenly spaced numbers over a specified interval.
+     */
+    public static InstantSortedArray linspace(long start, long endExcl, long step) {
+    	
+    	long range = endExcl - start;
+    	
+		long lSize = (long)Math.ceil((double)range / step);
+				
+    	if (lSize >= Integer.MAX_VALUE || lSize<0) {
+    		throw new IllegalArgumentException(start+" "+endExcl+" "+step+" "+lSize);
+    	}
+    	
+    	int size = (int) lSize;
+    	long[] result = new long[size];
+    	long x = start;
+    	for(int i=0; i<size; i++) {
+    		result[i] = x;
+    		x += step;
+    	}
+    	
+        return ofMillisNoClone(result);
+    }
+    
     public static ArrayBuilder<Instant, SortedArray<Instant>> builder(int sizeHint) {
         return new SortedInstantArrayBuilder(sizeHint);
     }
