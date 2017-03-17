@@ -6,9 +6,43 @@ Ultra-lightweight time series library for Java 8
 * Zero runtime dependencies, tiny jar
 * Neat API, leveraging Java 8 features
 
+## Quick Example
+
+Let's say you own 100 shares of IBM and 200 shares of Apple,
+and you want to calculate the history of your portfolio value from historical prices of the two stocks.
+
+```java
+//Get the historical prices from somewhere, e.g. http://finance.yahoo.com/quote/IBM/history?p=IBM
+Instant[] ibmDates = ...;
+double[] ibmPrices = ...;
+Instant[] appleDates = ...;
+double[] applePrices = ...;
+
+//Create time series containing IBM prices
+Series<Instant,Double> ibm = InstantDoubleSeries.create(ibmDates, ibmPrices);
+//Create time series containing Apple prices
+Series<Instant,Double> apple = InstantDoubleSeries.create(appleDates, applePrices);
+
+//Calculate the portfolio value. 
+//Multiply IBM prices by 100 and Apple by 200, and add the resulting series.
+//The "add" operation can deal with missing data (e.g. if Apple prices are missing for some days).
+//The result is a time series containing the historical value of the portfolio.
+Series<Instant,Double> portfolioValue = 
+    Binary.add(
+        Binary.mul(ibm, 100),
+        Binary.mul(apple, 200)
+    );
+
+//Just to be fancy, smooth the portfolio value with 30-day moving average.
+Series<Instant,Double> smoothedPortfolioValue = Moving.avg(portfolioValue, 30);
+
+//And print the result.
+System.out.println(smoothedPortfolioValue.values().asList().toString());
+```
+
 ## The Usecase
 
-I need to process time series in several my applications. 
+I need to process time series in some of my applications. 
 Sometimes it's financial data, such as historical stock prices,
 sometimes it's data from mobile phone sensors, like accelerometer or microphone.
 I need to perform operations like smoothing the series, various transformations,
@@ -32,44 +66,10 @@ who can benefit from the library just like I did.
 
 And the lib is easy to extend, you can quickly add the missing pieces of functionality on your own.
 
-I use the library to process series sometimes containing tens of millions of elements,
-and it takes just a fraction of second. Indeed, it has only a small performance 
+I use the library to process series sometimes containing millions of elements,
+and it takes just a fraction of second on a regular PC. Indeed, it has only a small performance 
 overhead compared to manipulating bare primitive arrays directly,
 but the API is much nicer and safer, the code much shorter and easier to understand, etc, etc.
-
-## Quick Example
-
-Let's say you own 100 shares of IBM and 200 shares of Apple,
-and you want to calculate the value of your portfolio from historical prices of the two stocks.
-
-```java
-//Get the historical prices from somewhere, e.g. http://finance.yahoo.com/ 
-Instant[] ibmDates = ...;
-double[] ibmPrices = ...;
-Instant[] appleDates = ...;
-double[] applePrices = ...;
-
-//Create time series containing IBM prices
-Series<Instant,Double> ibm = InstantDoubleSeries.create(ibmDates, ibmPrices);
-//Create time series containing Apple prices
-Series<Instant,Double> apple = InstantDoubleSeries.create(appleDates, applePrices);
-
-//Calculate the portfolio value. 
-//Multiply IBM prices by 100 and Apple by 200, and add the resulting series.
-//The "add" operation can deal with missing data (e.g. if Apple prices are missing for some days).
-//The result is time series containing the historical value of the portfolio.
-Series<Instant,Double> portfolioValue = 
-		Binary.add(
-				Binary.mul(ibm, 100),
-				Binary.mul(apple, 200)
-		);
-
-//Just to be fancy, smooth the portfolio value with 30-day moving average.
-Series<Instant,Double> smoothedPortfolioValue = Moving.avg(portfolioValue, 30);
-
-//And print the result.
-System.out.println(smoothedPortfolioValue.values().asList().toString());
-```
 
 ## Build & Install
 
@@ -107,11 +107,11 @@ This helps to achieve the best speed and memory efficiency.
 
 Everything is immutable. Arrays are encapsulated in immutable wrappers. 
 It keeps the semantics simple and eliminates any concurrency troubles.
-Well - there is one exception to this rule - DirtyFunctions - see the user guide.
+Well - there is one exception to this rule - DirtyFunctions - see the user guide below.
 
 There is only a single set of interfaces, used both for primitive and non-primitive types. 
 For example, there is an Array<T> interface, which has a generic implementation for
-an array of Objects, and a specific implementation DoubleArray (of type Array<Double>),
+an array of Objects, and a specific implementation DoubleArray (of the type ``Array<Double>``),
 which stores the values as primitives internally, but has big Double in its type signature.
 It greatly simplifies the API, compared to the standard Java APIs (functions, streams)
 where every interface is copied many times for every primitive type.
@@ -127,14 +127,14 @@ leveraging the cool new Java 8 stuff, such as lambdas and default method impleme
 
 ### Array
 
-Array<T> is an interface providing simple immutable wrapper around Java array. 
+``Array<T>`` is an interface providing a simple immutable wrapper around a Java array. 
 There are two implementations at the moment. GenericArray that can contain any type,
-and DoubleArray that internally contains primitive double[] in order to minimize memory usage.
+and DoubleArray that internally contains a primitive double[] in order to minimize memory usage.
 
 ```java
 Array<Double> a = DoubleArray.of(1.0, 2.0, 3.0);
 a.get(2);           //Retrieve an element
-a.asList();	        //Convert to list
+a.asList();         //Convert to list
 a.map(x -> x * 2);  //Transform the values with a function
 System.out.println(a.asList().toString());
 ```
